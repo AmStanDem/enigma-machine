@@ -27,7 +27,7 @@ impl Plugboard {
     }
 }
 
-/// Rappresenta il singolo Rotore (Walze)
+/// Rotor (Walze)
 #[derive(Clone)]
 pub struct Rotor {
     forward_wiring: [u8; 26],
@@ -38,33 +38,57 @@ pub struct Rotor {
 }
 
 impl Rotor {
-    /// Costruisce il rotore partendo dalla stringa storica del cablaggio
+    /// Builds a new Rotor
     pub fn new(wiring: &str, notch: char) -> Self {
-        todo!("Popola forward_wiring e calcola backward_wiring. Inizializza gli altri campi a 0")
+        let mut forward_wiring: [u8; 26] = [0; 26];
+        let mut backward_wiring: [u8; 26] = [0; 26];
+
+        for (index, character) in wiring.chars().enumerate() {
+            let number: u8 = character as u8 - b'A';
+            forward_wiring[index] = number;
+            backward_wiring[number as usize] = index as u8;
+        }
+        let notch_number: u8 = notch as u8 - b'A';
+        Self {
+            forward_wiring,
+            backward_wiring,
+            position: 0,
+            ring_setting: 0,
+            notch: notch_number,
+        }
     }
 
     pub fn set_position(&mut self, pos: char) {
-        todo!("Imposta la posizione da 0 a 25")
+        let position: u8 = pos as u8 - b'A';
+        self.position = position;
     }
 
     pub fn set_ring_setting(&mut self, ring: char) {
-        todo!("Imposta il ring setting da 0 a 25")
+        self.ring_setting = ring as u8 - b'A';
     }
 
     pub fn is_at_notch(&self) -> bool {
-        todo!("Restituisce true se la position è uguale al notch")
+        self.notch == self.position
     }
 
     pub fn step(&mut self) {
-        todo!("Incrementa la posizione di 1 (modulo 26)")
+        self.position = (self.position + 1) % 26;
     }
 
     pub fn forward(&self, signal: u8) -> u8 {
-        todo!("Applica la formula (signal + pos - ring), passa per forward_wiring, e rimuovi l'offset")
+        let offset = (self.position + 26 - self.ring_setting) % 26;
+        let signal_entry = (signal + offset) % 26;
+        let cable_exit = self.forward_wiring[signal_entry as usize];
+        let result = (cable_exit + 26 - offset) % 26;
+        result
     }
 
     pub fn backward(&self, signal: u8) -> u8 {
-        todo!("Come forward, ma usa backward_wiring")
+        let offset = (self.position + 26 - self.ring_setting) % 26;
+        let signal_entry = (signal + offset) % 26;
+        let cable_exit = self.backward_wiring[signal_entry as usize];
+        let result = (cable_exit + 26 - offset) % 26;
+        result
     }
 }
 
