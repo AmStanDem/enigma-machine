@@ -1,50 +1,92 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { invoke } from "@tauri-apps/api/core"; 
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
+  const [litLetter, setLitLetter] = useState<string>("");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  const pressKey = async (letter: string) => {
+    try {
+      const encryptedLetter = await invoke<string>("process_keystroke", {
+        key: letter,
+      });
+
+      setInputText((prev) => prev + letter);
+      setOutputText((prev) => prev + encryptedLetter);
+
+      setLitLetter(encryptedLetter);
+      setTimeout(() => setLitLetter(""), 500);
+
+    } catch (error) {
+      // TODO Better error handling.
+      console.error("Error inside the enigma machine:", error);
+    }
+  };
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <div style={{ textAlign: "center", padding: "2rem", fontFamily: "monospace", backgroundColor: "#1a1a1a", color: "#fff", minHeight: "100vh" }}>
+      <h1>Enigma machine</h1>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      {/* text ribbons*/}
+      <div style={{ marginBottom: "3rem", fontSize: "1.5rem" }}>
+        <p style={{ color: "#aaa" }}><strong>Input:</strong> {inputText}</p>
+        <p style={{ color: "#4caf50" }}><strong>Output:</strong> {outputText}</p>
       </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+      {/*TODO refactor in the Lightboard component */}
+      {/* Lightboard (bulb that can be on/off) */}
+      <div style={{ marginBottom: "2rem", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px", maxWidth: "600px", margin: "0 auto" }}>
+        {alphabet.map((char) => (
+          <div
+            key={`lamp-${char}`}
+            style={{
+              width: "45px",
+              height: "45px",
+              borderRadius: "50%",
+              backgroundColor: litLetter === char ? "#ffcc00" : "#333",
+              color: litLetter === char ? "#000" : "#666",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "1.2rem",
+              boxShadow: litLetter === char ? "0 0 15px #ffcc00" : "inset 0 0 5px #000",
+              transition: "all 0.1s ease-in-out"
+            }}
+          >
+            {char}
+          </div>
+        ))}
+      </div>
+
+      <hr style={{ borderColor: "#333", margin: "2rem 0" }} />
+
+      {/* TODO Keyboard component */}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px", maxWidth: "600px", margin: "0 auto" }}>
+        {alphabet.map((char) => (
+          <button
+            key={`btn-${char}`}
+            onClick={() => pressKey(char)}
+            style={{
+              width: "45px",
+              height: "45px",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+              borderRadius: "5px",
+              backgroundColor: "#e0e0e0",
+              border: "2px solid #999",
+              color: "#000",
+              fontWeight: "bold"
+            }}
+          >
+            {char}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
