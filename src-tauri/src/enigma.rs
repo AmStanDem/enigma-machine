@@ -68,18 +68,24 @@ impl Rotor {
     }
 }
 
-/// Rappresenta il Riflettore (Umkehrwalze)
+/// Reflector (Umkehrwalze)
 pub struct Reflector {
     wiring: [u8; 26],
 }
 
 impl Reflector {
     pub fn new(wiring: &str) -> Self {
-        todo!("Popola l'array di cablaggio in base alla stringa fornita")
+        let mut tmp: [u8; 26] = [0; 26];
+
+        for (index, character) in wiring.chars().enumerate() {
+            let number: u8 = character as u8 - b'A';
+            tmp[index] = number;
+        }
+        Self { wiring: tmp }
     }
 
     pub fn reflect(&self, signal: u8) -> u8 {
-        todo!("Restituisce semplicemente il valore mappato (niente offset o rotazioni qui)")
+        self.wiring[signal as usize]
     }
 }
 
