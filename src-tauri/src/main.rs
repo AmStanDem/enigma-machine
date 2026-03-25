@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use serde::Serialize;
 use std::sync::Mutex;
 
 mod enigma;
@@ -10,9 +11,16 @@ struct AppState {
     enigma: Mutex<EnigmaMachine>,
 }
 
+/// 2. Enigma response
+#[derive(Serialize)]
+pub struct EnigmaResponse {
+    pub letter: char,
+    pub positions: [usize; 3],
+}
+
 // 2. TAURI command (bridge with frontend)
 #[tauri::command]
-fn process_keystroke(state: tauri::State<AppState>, key: char) -> Result<char, String> {
+fn process_keystroke(state: tauri::State<AppState>, key: char) -> Result<EnigmaResponse, String> {
     let mut machine = state.enigma.lock().unwrap();
 
     let input_num = key.to_ascii_uppercase() as u8 - b'A';
@@ -20,8 +28,12 @@ fn process_keystroke(state: tauri::State<AppState>, key: char) -> Result<char, S
     let output_num = machine.process_key(input_num);
 
     let output_char = (output_num + b'A') as char;
+    let current_positions = machine.get_rotor_positions();
 
-    Ok(output_char)
+    Ok(EnigmaResponse {
+        letter: output_char,
+        positions: current_positions,
+    })
 }
 
 fn main() {

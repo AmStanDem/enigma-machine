@@ -156,7 +156,9 @@ impl EnigmaMachine {
     /// Main method: Enter a letter and encrypts it.
     pub fn process_key(&mut self, input: u8) -> u8 {
         self.step_rotors();
+
         let signal = self.plugboard.forward(input);
+
         let signal = self.right_rotor.forward(signal);
         let signal = self.middle_rotor.forward(signal);
         let signal = self.left_rotor.forward(signal);
@@ -168,6 +170,14 @@ impl EnigmaMachine {
         let signal = self.right_rotor.backward(signal);
 
         self.plugboard.forward(signal)
+    }
+    /// Gets the current rotor positions.
+    pub fn get_rotor_positions(&self) -> [usize; 3] {
+        [
+            self.left_rotor.position as usize,
+            self.middle_rotor.position as usize,
+            self.right_rotor.position as usize,
+        ]
     }
 }
 
