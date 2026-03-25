@@ -1,24 +1,39 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core"; 
+import { Rotor } from "./components/Rotor/Rotor";
+
+interface EnigmaResponse {
+  letter: string;
+  positions: [number, number, number];
+}
+
 
 function App() {
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [litLetter, setLitLetter] = useState<string>("");
+  const [rotorPositions, setRotorPositions] = useState<[number, number, number]>([0, 0, 0]);
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
   const pressKey = async (letter: string) => {
     try {
-      const encryptedLetter = await invoke<string>("process_keystroke", {
+      const response = await invoke<EnigmaResponse>("process_keystroke", {
         key: letter,
       });
+
+      const encryptedLetter = response.letter;
+      const newPositions = response.positions;
 
       setInputText((prev) => prev + letter);
       setOutputText((prev) => prev + encryptedLetter);
 
       setLitLetter(encryptedLetter);
       setTimeout(() => setLitLetter(""), 500);
+
+      console.log("Positions: " + newPositions);
+
+      setRotorPositions(newPositions);
 
     } catch (error) {
       // TODO Better error handling.
@@ -29,6 +44,13 @@ function App() {
   return (
     <div style={{ textAlign: "center", padding: "2rem", fontFamily: "monospace", backgroundColor: "#1a1a1a", color: "#fff", minHeight: "100vh" }}>
       <h1>Enigma machine</h1>
+
+      {/*rotors */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "2rem" }}>
+        <Rotor position={rotorPositions[0]} />
+        <Rotor position={rotorPositions[1]} />
+        <Rotor position={rotorPositions[2]} />
+      </div>
 
       {/* text ribbons*/}
       <div style={{ marginBottom: "3rem", fontSize: "1.5rem" }}>
